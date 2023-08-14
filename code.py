@@ -160,7 +160,7 @@ happy_region_df.loc[132, 'iso alpha'] = 'COD'
 # print(happy_region_df.isnull().sum())
 
 happy_region_df_3cluster = happy_region_df[['điểm hạnh phúc', 'GDP bình quân đầu người',
-                                            'Hỗ trợ xã hội', 'tự do lựa chọn cuộc sống', 'Tính hào phóng', 'Nhận thức về tham nhũng']]
+                                            'Hỗ trợ xã hội', 'tự do lựa chọn cuộc sống', 'Tính hào phóng', 'Nhận thức về tham nhũng','tuổi thọ']]
 # phân cụm dữ liệu trên bằng phương pháp KMeans với số cụm là 3 cụm
 # lưu file happy_region_df_3cluster thành file csv
 happy_region_df_3cluster.to_csv('happy_region_df_3cluster.csv', index=False)
@@ -168,10 +168,11 @@ happy_region_df_3cluster.to_csv('happy_region_df_3cluster.csv', index=False)
 # hiển thị các điểm dữ liệu trên đồ thị với màu sắc tương ứng với cụm mà nó thuộc về
 
 def show_cluster():
-    #phân cụm dùng thuật toán kmeans với số cụm là 3 cụm 
+    # phân cụm dùng thuật toán kmeans với số cụm là 3 cụm
     kmeans = KMeans(n_clusters=3, random_state=0).fit(happy_region_df_3cluster)
-    #hiển thị đồ thị với màu sắc tương ứng với cụm mà nó thuộc về của các điểm dữ liệu
-    plt.scatter(happy_region_df_3cluster['GDP bình quân đầu người'], happy_region_df_3cluster['điểm hạnh phúc'], c=kmeans.labels_, cmap='rainbow')
+    # hiển thị đồ thị với màu sắc tương ứng với cụm mà nó thuộc về của các điểm dữ liệu
+    plt.scatter(happy_region_df_3cluster['GDP bình quân đầu người'],
+                happy_region_df_3cluster['điểm hạnh phúc'], c=kmeans.labels_, cmap='rainbow')
     plt.xlabel('GDP bình quân đầu người')
     plt.ylabel('điểm hạnh phúc')
     plt.show()
@@ -185,7 +186,6 @@ Tu_do_lua_chon_cuoc_song = 0
 Tinh_hao_phong = 0
 Nhan_thuc_ve_tham_nhuc = 0
 tuoi_tho = 0
-
 
 def input_data():
     lbl1 = Label(window, text="Nhap GDP bình quân đầu người",
@@ -215,50 +215,46 @@ def input_data():
     lbl6.grid(column=0, row=11)
     txt6 = Entry(window, width=20)
     txt6.grid(column=1, row=11)
+    def ket_qua():
+        if (txt1.get() != "" or txt2.get() != "" or txt3.get() != "" or txt4.get() != "" or txt5.get() != "" or txt6.get() != ""):
+            gdp_binh_quan_dau_nguoi = float(txt1.get())
+            Ho_tro_xa_hoi = float(txt2.get())
+            Tu_do_lua_chon_cuoc_song = float(txt3.get())
+            Tinh_hao_phong = float(txt4.get())
+            Nhan_thuc_ve_tham_nhuc = float(txt5.get())
+            tuoi_tho = float(txt6.get())
+            # áp dụng mô hình hồi quy tuyến tính để dự đoán điểm hạnh phúc của một quốc gia
+            # đầu vào của mô hình là các thông tin về GDP bình quân đầu người, Hỗ trợ xã hội, tự do lựa chọn cuộc sống, Tính hào phóng, Nhận thức về tham nhũng, tuổi thọ
+            # đầu ra của mô hình là điểm hạnh phúc của một quốc gia
+            # đọc file csv chứa dữ liệu đã được xử lý trước đó
+            df = pd.read_csv('happy_region_df_3cluster.csv')
+            print(df)
+            # tạo một mảng chứa các giá trị của các biến đầu vào
+            X = df[['GDP bình quân đầu người', 'Hỗ trợ xã hội', 'tự do lựa chọn cuộc sống',
+                    'Tính hào phóng', 'Nhận thức về tham nhũng', 'tuổi thọ']]
+            # tạo một mảng chứa các giá trị của biến đầu ra
+            y = df['điểm hạnh phúc']
+            # tạo một mô hình hồi quy tuyến tính
+            model = LinearRegression()
+            # đưa dữ liệu vào mô hình để huấn luyện
+            model.fit(X, y)
+            # dự đoán điểm hạnh phúc của một quốc gia
+            y_pred = model.predict([[gdp_binh_quan_dau_nguoi, Ho_tro_xa_hoi,
+                Tu_do_lua_chon_cuoc_song, Tinh_hao_phong, Nhan_thuc_ve_tham_nhuc, tuoi_tho]])
+            lbl7 = Label(window, text="Dự đoán điểm hạnh phúc của một quốc gia là: " +
+                str(y_pred), font=("Arial Bold", 10))
+            lbl7.grid(column=0, row=12)
+        else:
+            lbl7 = Label(window, text="Bạn chưa nhập đủ thông tin",
+                font=("Arial Bold", 10))
+            lbl7.grid(column=0, row=12)
     btn5 = Button(window, text="Kết quả", command=ket_qua)
     btn5.grid(column=1, row=12)
-
-def ket_qua():
-    if (txt1.get() != "" and txt2.get() != "" and txt3.get() != "" and txt4.get() != "" and txt5.get() != "" and txt6.get() != ""):
-        gdp_binh_quan_dau_nguoi = float(txt1.get())
-        Ho_tro_xa_hoi = float(txt2.get())
-        Tu_do_lua_chon_cuoc_song = float(txt3.get())
-        Tinh_hao_phong = float(txt4.get())
-        Nhan_thuc_ve_tham_nhuc = float(txt5.get())
-        tuoi_tho = float(txt6.get())
-        print(gdp_binh_quan_dau_nguoi, Ho_tro_xa_hoi, Tu_do_lua_chon_cuoc_song,Tinh_hao_phong,Nhan_thuc_ve_tham_nhuc,tuoi_tho)
-        # áp dụng mô hình hồi quy tuyến tính để dự đoán điểm hạnh phúc của một quốc gia
-        # đầu vào của mô hình là các thông tin về GDP bình quân đầu người, Hỗ trợ xã hội, tự do lựa chọn cuộc sống, Tính hào phóng, Nhận thức về tham nhũng, tuổi thọ
-        # đầu ra của mô hình là điểm hạnh phúc của một quốc gia
-        # đọc file csv chứa dữ liệu đã được xử lý trước đó
-        df = pd.read_csv('happy_region_df_3cluster.csv')
-        # tạo một mảng chứa các giá trị của các biến đầu vào
-        X = df[['GDP bình quân đầu người', 'Hỗ trợ xã hội', 'Tự do lựa chọn cuộc sống',
-                'Tính hào phóng', 'Nhận thức về tham nhũng', 'tuổi thọ']]
-        # tạo một mảng chứa các giá trị của biến đầu ra
-        y = df['điểm hạnh phúc']
-        # tạo một mô hình hồi quy tuyến tính
-        model = LinearRegression()
-        # đưa dữ liệu vào mô hình để huấn luyện
-        model.fit(X, y)
-        # dự đoán điểm hạnh phúc của một quốc gia
-        y_pred = model.predict([[gdp_binh_quan_dau_nguoi, Ho_tro_xa_hoi,
-            Tu_do_lua_chon_cuoc_song, Tinh_hao_phong, Nhan_thuc_ve_tham_nhuc, tuoi_tho]])
-        lbl7 = Label(window, text="Dự đoán điểm hạnh phúc của một quốc gia là: " +
-            str(y_pred), font=("Arial Bold", 10))
-        lbl7.grid(column=0, row=12)
-
-    else:
-        lbl7 = Label(window, text="Bạn chưa nhập đủ thông tin",
-        font=("Arial Bold", 10))
-        lbl7.grid(column=0, row=12)
-
-
 # tạo form nhập liệu
 window = Tk()
 window.title("Dự đoán điểm hạnh phúc của một quốc gia")
 window.geometry('500x300')
-btn4 = Button(window, text="Nhập dữ liệu", command=input_data)
+btn4 = Button(window, text="Dự đoán điểm hạnh phúc", command=input_data)
 btn4.grid(column=0, row=5)
 
 btn6 = Button(window, text="Kết quả phân cụm", command=show_cluster)
