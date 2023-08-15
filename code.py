@@ -250,13 +250,57 @@ def input_data():
             lbl7.grid(column=0, row=12)
     btn5 = Button(window, text="Kết quả", command=ket_qua)
     btn5.grid(column=1, row=12)
+def diem_tb_tung_chau_luc():
+    mean_happiness = happy_region_df.groupby(
+        'vùng quốc gia')[['điểm hạnh phúc']].mean()
+    mean_happiness = mean_happiness.sort_values(
+    by=['điểm hạnh phúc'], ascending=False)
+    # hiển thị trên form 
+    lbl8 = Label(window, text="Điểm trung bình của từng châu lục", font=("Arial Bold", 10))
+    lbl8.grid(column=0, row=13)
+    lbl9 = Label(window, text=mean_happiness, font=("Arial Bold", 10))
+    lbl9.grid(column=0, row=14)
+    # hiển thị trên đồ thị
+    mean_happiness.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel('vùng quốc gia') # add to x-label to the plot
+    plt.ylabel('điểm hạnh phúc') # add y-label to the plot
+    plt.title('Điểm trung bình của từng châu lục') # add title to the plot
+    plt.show()
+
+def do_thi_hinh_tron():
+    fig = px.sunburst(data_frame=happy_region_df,
+    path=["châu lục", "vùng quốc gia", "quốc gia"],
+    values="điểm hạnh phúc",
+    color="điểm hạnh phúc",
+    color_continuous_scale='RdYlGn',
+    width=1000,
+    height=1000,
+    title='Happiness score sunburst - region / sub region / country')
+    fig.show()
+
+def ban_do_the_gioi():
+    happy_world_map = px.choropleth(happy_region_df, locations="iso alpha",
+    color="rank", scope='world', title="Happiness Ranking World Map",
+    color_continuous_scale="rdylgn_r", hover_name="quốc gia")
+    happy_world_map.show()
+
 # tạo form nhập liệu
 window = Tk()
 window.title("Dự đoán điểm hạnh phúc của một quốc gia")
 window.geometry('500x300')
+# hiển thị các nút btn theo dạng cột và cách nhau 10 đơn vị
 btn4 = Button(window, text="Dự đoán điểm hạnh phúc", command=input_data)
 btn4.grid(column=0, row=5)
 
 btn6 = Button(window, text="Kết quả phân cụm", command=show_cluster)
-btn6.grid(column=1, row=5)
+btn6.grid(column=0, row=15)
+
+btn7= Button(window, text="Điểm trung bình của từng châu lục", command=diem_tb_tung_chau_luc)
+btn7.grid(column=0, row=25)
+
+btn8= Button(window, text="Đồ thị hình tròn", command=do_thi_hinh_tron)
+btn8.grid(column=0, row=35)
+
+btn9 = Button(window, text="Bản đồ thế giới", command=ban_do_the_gioi)
+btn9.grid(column=0, row=45)
 window.mainloop()
