@@ -29,8 +29,11 @@ country_mapping.dtypes
 
 # kiểm có cột nào bị trùng trong bảng happy_2023 không
 happy_2023.columns.duplicated()
+#kiểm tra có cột nào bị trùng trong bảng country_mapping không
+country_mapping.columns.duplicated()
 # kiểm tra các giá trị null trong bảng happy_2023
 happy_2023.isnull().sum()
+# print(happy_2023.isnull().sum())
 # Remove all columns between column name 'Ladder score in Dystopia' to 'Dystopia + residual'
 happy_2023 = happy_2023.drop(
     happy_2023.loc[:, 'Ladder score in Dystopia':'Dystopia + residual'].columns, axis=1)
@@ -38,27 +41,19 @@ happy_2023 = happy_2023.drop(
 happy_2023 = happy_2023.drop(
     happy_2023.loc[:, 'Standard error of ladder score':'lowerwhisker'].columns, axis=1)
 
-happy_2023['rank'] = happy_2023['Ladder score'].rank(ascending=False)
-happy_2023['rank'] = happy_2023['rank'].astype(int)
+happy_2023['thứ hạng'] = happy_2023['Ladder score'].rank(ascending=False)
+happy_2023['thứ hạng'] = happy_2023['thứ hạng'].astype(int)
 
 # Rename the columns for consistency
-happy_df_2023 = happy_2023.rename({'Country name': 'quốc gia', 'Standard error of ladder score': 'Sai số chuẩn của điểm hạnh phúc', 'Ladder score': 'điểm hạnh phúc', 'Happiness score': 'điểm hạnh phúc', 'Logged GDP per capita': 'GDP bình quân đầu người', 'Social support': 'Hỗ trợ xã hội', 'Healthy life expectancy': 'tuổi thọ',
-                                   'Freedom to make life choices': 'tự do lựa chọn cuộc sống', 'Generosity': 'Tính hào phóng', 'Perceptions of corruption': 'Nhận thức về tham nhũng', 'Explained by: Freedom to make life choices': 'tự do lựa chọn cuộc sống', 'Explained by: Generosity': 'tính hào phóng', 'Explained by: Perceptions of corruption': 'Nhận thức về tham nhũng'}, axis=1)
+happy_df_2023 = happy_2023.rename({'Country name': 'quốc gia',  'Ladder score': 'điểm hạnh phúc', 'Logged GDP per capita': 'GDP bình quân đầu người', 'Social support': 'Hỗ trợ xã hội', 'Healthy life expectancy': 'tuổi thọ',
+                                   'Freedom to make life choices': 'tự do lựa chọn cuộc sống', 'Generosity': 'Tính hào phóng', 'Perceptions of corruption': 'Nhận thức về tham nhũng'}, axis=1)
 happy_df_2023.head()
 # print(happy_df_2023.head())
 
 
-def top_bottom_identifier(value):
-    if value < 11:
-        return "top 10 happiest"
-    if value > 127:
-        return "bottom 10 happiest"
-    elif 11 <= value < 128:
-        return "not top/bottom 10"
 
-
-happy_df_2023['top_bottom_identifier'] = happy_df_2023['rank'].map(
-    top_bottom_identifier)
+# happy_df_2023['top_bottom_identifier'] = happy_df_2023['rank'].map(
+#     top_bottom_identifier)
 
 # print(happy_df_2023.head())
 
@@ -70,8 +65,7 @@ country_mapping = country_mapping.drop(
 # Remove all columns between column name 'intermediate-region' to 'intermediate-region-code'
 country_mapping = country_mapping.drop(
     country_mapping.loc[:, 'intermediate-region':'intermediate-region-code'].columns, axis=1)
-# country_mapping.head()
-
+# print(country_mapping.head())
 
 # đổi tên cột trong bảng country_mapping
 country_mapping = country_mapping.rename(
@@ -165,18 +159,27 @@ happy_region_df_3cluster = happy_region_df[['điểm hạnh phúc', 'GDP bình q
 # lưu file happy_region_df_3cluster thành file csv
 happy_region_df_3cluster.to_csv('happy_region_df_3cluster.csv', index=False)
 
+
 # hiển thị các điểm dữ liệu trên đồ thị với màu sắc tương ứng với cụm mà nó thuộc về
 
 def show_cluster():
     # phân cụm dùng thuật toán kmeans với số cụm là 3 cụm
     kmeans = KMeans(n_clusters=3, random_state=0).fit(happy_region_df_3cluster)
-    # hiển thị đồ thị với màu sắc tương ứng với cụm mà nó thuộc về của các điểm dữ liệu
-    plt.scatter(happy_region_df_3cluster['GDP bình quân đầu người'],
-                happy_region_df_3cluster['điểm hạnh phúc'], c=kmeans.labels_, cmap='rainbow')
+    # thêm cột nhãn cụm vào bảng happy_region_df_3cluster để phân biệt các cụm
+    happy_region_df_3cluster['nhãn'] = kmeans.labels_
+    #hiển thị thông tin quốc gia và nhãn cụm tương ứng của nó ra terminal 
+    print(happy_region_df_3cluster[['điểm hạnh phúc', 'nhãn']])
+    #lưu ra 1 file csv mới mappping nhãn cụm với các quốc gia tương ứng của bảng happy_df_2023 với cột điểm hạnh phúc phải trùng với cột điểm hạnh phúc của bảng happy_region_df_3cluster
+    happy_df_2023['nhãn'] = happy_region_df_3cluster['nhãn']
+    happy_df_2023.to_csv('happy_df_2023_cluster.csv', index=False)
+    
+    # hiển thị các điểm dữ liệu trên đồ thị với màu sắc tương ứng với cụm mà nó thuộc về và khoanh vùng các cụm bằng đường viền màu đen
+    sns.scatterplot(x='GDP bình quân đầu người', y='điểm hạnh phúc', hue='nhãn', data=happy_region_df_3cluster, palette=['green', 'orange', 'blue'], legend='full', alpha=0.3)
+    plt.title('Phân cụm dữ liệu')
     plt.xlabel('GDP bình quân đầu người')
     plt.ylabel('điểm hạnh phúc')
     plt.show()
-
+    
 # xây dựng form nhập liệu để người dùng nhập vào các thông tin cần thiết để dự đoán điểm hạnh phúc của một quốc gia
 
 # khoi tao bien de luu gia tri cua cac bien
@@ -188,30 +191,30 @@ Nhan_thuc_ve_tham_nhuc = 0
 tuoi_tho = 0
 
 def input_data():
-    lbl1 = Label(window, text="Nhap GDP bình quân đầu người",
+    lbl1 = Label(window, text="GDP bình quân đầu người",
                  font=("Arial Bold", 10))
     lbl1.grid(column=0, row=6)
     txt1 = Entry(window, width=20)
     txt1.grid(column=1, row=6)
-    lbl2 = Label(window, text="Nhap Hỗ trợ xã hội", font=("Arial Bold", 10))
+    lbl2 = Label(window, text="Hỗ trợ xã hội", font=("Arial Bold", 10))
     lbl2.grid(column=0, row=7)
     txt2 = Entry(window, width=20)
     txt2.grid(column=1, row=7)
-    lbl3 = Label(window, text="Nhap tự do lựa chọn cuộc sống",
+    lbl3 = Label(window, text="tự do lựa chọn cuộc sống",
                  font=("Arial Bold", 10))
     lbl3.grid(column=0, row=8)
     txt3 = Entry(window, width=20)
     txt3.grid(column=1, row=8)
-    lbl4 = Label(window, text="Nhap Tính hào phóng", font=("Arial Bold", 10))
+    lbl4 = Label(window, text="Tính hào phóng", font=("Arial Bold", 10))
     lbl4.grid(column=0, row=9)
     txt4 = Entry(window, width=20)
     txt4.grid(column=1, row=9)
-    lbl5 = Label(window, text="Nhap Nhận thức về tham nhũng",
+    lbl5 = Label(window, text="Nhận thức về tham nhũng",
                  font=("Arial Bold", 10))
     lbl5.grid(column=0, row=10)
     txt5 = Entry(window, width=20)
     txt5.grid(column=1, row=10)
-    lbl6 = Label(window, text="Nhap tuổi thọ", font=("Arial Bold", 10))
+    lbl6 = Label(window, text="tuổi thọ", font=("Arial Bold", 10))
     lbl6.grid(column=0, row=11)
     txt6 = Entry(window, width=20)
     txt6.grid(column=1, row=11)
@@ -228,7 +231,7 @@ def input_data():
             # đầu ra của mô hình là điểm hạnh phúc của một quốc gia
             # đọc file csv chứa dữ liệu đã được xử lý trước đó
             df = pd.read_csv('happy_region_df_3cluster.csv')
-            print(df)
+            # print(df)
             # tạo một mảng chứa các giá trị của các biến đầu vào
             X = df[['GDP bình quân đầu người', 'Hỗ trợ xã hội', 'tự do lựa chọn cuộc sống',
                     'Tính hào phóng', 'Nhận thức về tham nhũng', 'tuổi thọ']]
@@ -280,7 +283,7 @@ def do_thi_hinh_tron():
 
 def ban_do_the_gioi():
     happy_world_map = px.choropleth(happy_region_df, locations="iso alpha",
-    color="rank", scope='world', title="Happiness Ranking World Map",
+    color="thứ hạng", scope='world', title="Thứ hạng hạnh phúc của các quốc gia trên thế giới",
     color_continuous_scale="rdylgn_r", hover_name="quốc gia")
     happy_world_map.show()
 
