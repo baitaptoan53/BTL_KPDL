@@ -34,6 +34,7 @@ country_mapping.columns.duplicated()
 # kiểm tra các giá trị null trong bảng happy_2023
 happy_2023.isnull().sum()
 # print(happy_2023.isnull().sum())
+
 # Remove all columns between column name 'Ladder score in Dystopia' to 'Dystopia + residual'
 happy_2023 = happy_2023.drop(
     happy_2023.loc[:, 'Ladder score in Dystopia':'Dystopia + residual'].columns, axis=1)
@@ -168,18 +169,17 @@ def show_cluster():
     # thêm cột nhãn cụm vào bảng happy_region_df_3cluster để phân biệt các cụm
     happy_region_df_3cluster['nhãn'] = kmeans.labels_
     #hiển thị thông tin quốc gia và nhãn cụm tương ứng của nó ra terminal 
-    print(happy_region_df_3cluster[['điểm hạnh phúc', 'nhãn']])
     #lưu ra 1 file csv mới mappping nhãn cụm với các quốc gia tương ứng của bảng happy_df_2023 với cột điểm hạnh phúc phải trùng với cột điểm hạnh phúc của bảng happy_region_df_3cluster
     happy_df_2023['nhãn'] = happy_region_df_3cluster['nhãn']
     happy_df_2023.to_csv('happy_df_2023_cluster.csv', index=False)
-    
+    print(happy_df_2023.groupby('nhãn')[['điểm hạnh phúc']].mean())
     # hiển thị các điểm dữ liệu trên đồ thị với màu sắc tương ứng với cụm mà nó thuộc về và khoanh vùng các cụm bằng đường viền màu đen
     sns.scatterplot(x='GDP bình quân đầu người', y='điểm hạnh phúc', hue='nhãn', data=happy_region_df_3cluster, palette=['green', 'orange', 'blue'], legend='full', alpha=0.3)
     plt.title('Phân cụm dữ liệu')
     plt.xlabel('GDP bình quân đầu người')
     plt.ylabel('điểm hạnh phúc')
     plt.show()
-    
+#Tính điểm trung bình của từng cụm của file happy_df_2023_cluster.csv và hiển thị ra terminal
 # xây dựng form nhập liệu để người dùng nhập vào các thông tin cần thiết để dự đoán điểm hạnh phúc của một quốc gia
 
 # khoi tao bien de luu gia tri cua cac bien
@@ -258,11 +258,6 @@ def diem_tb_tung_chau_luc():
         'vùng quốc gia')[['điểm hạnh phúc']].mean()
     mean_happiness = mean_happiness.sort_values(
     by=['điểm hạnh phúc'], ascending=False)
-    # hiển thị trên form 
-    lbl8 = Label(window, text="Điểm trung bình của từng châu lục", font=("Arial Bold", 10))
-    lbl8.grid(column=0, row=13)
-    lbl9 = Label(window, text=mean_happiness, font=("Arial Bold", 10))
-    lbl9.grid(column=0, row=14)
     # hiển thị trên đồ thị
     mean_happiness.plot(kind='bar', figsize=(10, 6))
     plt.xlabel('vùng quốc gia') # add to x-label to the plot
